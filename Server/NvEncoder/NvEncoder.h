@@ -221,7 +221,7 @@ public:
 
 		// B = Encoding bitrate
 		int B = 1000 * 1024; // kbps
-		int fps = 20;
+		int fps = 50;
 		uint32_t maxFrameSize = B / fps; // bandwidth / frame rate
 		
 		encodeConfig.vbvSize = maxFrameSize;
@@ -232,12 +232,15 @@ public:
 
 
 		encodeConfig.rcMode = NV_ENC_PARAMS_RC_VBR;//NV_ENC_PARAMS_RC_CONSTQP;
-		encodeConfig.gopLength = 200;//NVENC_INFINITE_GOPLENGTH;
+		//encodeConfig.gopLength = 200;//NVENC_INFINITE_GOPLENGTH;
+		encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
 		encodeConfig.deviceType = NV_ENC_CUDA;
 		encodeConfig.codec = NV_ENC_H264;
 		encodeConfig.fps = fps;
-		encodeConfig.qp = 28;
-		encodeConfig.presetGUID = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;//NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;//NV_ENC_PRESET_DEFAULT_GUID;
+		//encodeConfig.qp = 28;
+		encodeConfig.qp = 1;
+		//encodeConfig.presetGUID = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;//NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;//NV_ENC_PRESET_DEFAULT_GUID;
+		encodeConfig.presetGUID = NV_ENC_PRESET_LOSSLESS_HP_GUID;
 		encodeConfig.pictureStruct = NV_ENC_PIC_STRUCT_FRAME;
 		encodeConfig.isYuv444 = 0;
 

@@ -8,6 +8,7 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
 class NV_encoding {
 public:
+
 	void load(int width, int height, socket_ptr sock, UINT monitorID) {
 		NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
 
@@ -26,26 +27,21 @@ public:
 		yuv[0] = new uint8_t[width*height];
         yuv[1] = new uint8_t[width*height / 4];
         yuv[2] = new uint8_t[width*height / 4];
-
-		// Init avi file
-		//char buffer[255];
-		//sprintf(buffer, "C:\\Monitor%d.avi", monitorID);
-		//ofs.open(buffer, std::ofstream::out | std::ofstream::binary);
-
 	}
+
 	void write(int width, int height, RGBQUAD *pPixels) {
-		
+
 		bool rc = RGB_to_YV12(width, height, pPixels, yuv[0], yuv[1], yuv[2]);
 
 		if (!rc){
 			// The Cuda function RGB_to_YV12 failed, do CPU conversion
 			for (int y = 0; y < height; y++) {
 				for (int x = 0; x < width; x++) {
-				
-					RGBQUAD px = pPixels[y*width+x];
-					int Y = ( (  66 * px.rgbRed + 129 * px.rgbGreen +  25 * px.rgbBlue + 128) >> 8) +  16;
-					int U = ( ( -38 * px.rgbRed -  74 * px.rgbGreen + 112 * px.rgbBlue + 128) >> 8) + 128;
-					int V = ( ( 112 * px.rgbRed -  94 * px.rgbGreen -  18 * px.rgbBlue + 128) >> 8) + 128;
+
+					RGBQUAD px = pPixels[y*width + x];
+					int Y = ((66 * px.rgbRed + 129 * px.rgbGreen + 25 * px.rgbBlue + 128) >> 8) + 16;
+					int U = ((-38 * px.rgbRed - 74 * px.rgbGreen + 112 * px.rgbBlue + 128) >> 8) + 128;
+					int V = ((112 * px.rgbRed - 94 * px.rgbGreen - 18 * px.rgbBlue + 128) >> 8) + 128;
 
 					yuv[0][y * width + x] = Y;
 					yuv[1][(y >> 1) * (width >> 1) + (x >> 1)] = U;
@@ -62,20 +58,17 @@ public:
         stEncodeFrame.yuv[2] = yuv[2];
 
         stEncodeFrame.stride[0] = width;
-        stEncodeFrame.stride[1] = width/2;
-        stEncodeFrame.stride[2] = width/2;
+		stEncodeFrame.stride[1] = width / 2;
+		stEncodeFrame.stride[2] = width / 2;
         stEncodeFrame.width = width;
         stEncodeFrame.height = height;
 
         cNvEncoder->EncodeFrame(&stEncodeFrame, dataPacket, false, width, height);
 		if (dataPacket->size > 0) {
-			printf("Write frame (size=%5d)\n", dataPacket->size);
-
-			//ofs.write((char*)dataPacket->data, dataPacket->size);
-
 			boost::asio::write(*sock, buffer((char*)dataPacket->data, dataPacket->size));
 		}
 	}
+
 	void close () {
 		delete cNvEncoder;
 		delete dataPacket->data;
@@ -88,6 +81,7 @@ public:
 			}
 		}
 	}
+
 private:
 	int width;
 	int height;
@@ -95,6 +89,4 @@ private:
     uint8_t *yuv[3];
 	CNvEncoder* cNvEncoder;
 	DataPacket* dataPacket;
-
-	//std::ofstream ofs;
 };
